@@ -2,10 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
+import 'package:todo_list/addtodo.dart';
+import 'package:todo_list/main.dart';
 import 'package:todo_list/model/database.dart';
 import 'dart:async';
 
 import 'package:todo_list/model/todo.dart';
+import 'package:todo_list/search/search.dart';
 
 void main() {
   runApp(const MyApp());
@@ -44,7 +47,7 @@ class _MyHomePageState extends State<MyHomePage> {
   bool _isLoading = true;
   List<ToDo> todoList = [];
 
-  var formatterDate = new DateFormat('dd-MM-yyyy');
+  var formatterDate = new DateFormat('yyyy-MM-dd');
   var formatterTime = new DateFormat('HH:mm');
 
 
@@ -57,15 +60,25 @@ class _MyHomePageState extends State<MyHomePage> {
     });
   }
 
+  void _getToDayTodoList() async{
+    final data = await Data.getToDayToDoList();
+    setState(() {
+      todoList = data;
+      _isLoading = false;
+    });
+  }
+
+  void _getUpComingTodoList() async{
+    final data = await Data.getUpComingToDoList();
+    setState(() {
+      todoList = data;
+      _isLoading = false;
+    });
+  }
+
   @override
   void initState() {
     super.initState();
-    // Data.updateToDo(ToDo(id: 1, title: "Làm bài tập 1 cho rất rất nhiều môn", day: "20-10-2022", time: "20:30", status: 0));
-    // Data.insertTodo(ToDo(id: 2, title: "Làm bài tập 2", day: "21-10-2022", time: "21:30", status: 0));
-    // Data.insertTodo(ToDo(id: 3, title: "Làm bài tập 3", day: "22-10-2022", time: "22:30", status: 0));
-    // Data.insertTodo(ToDo(id: 4, title: "Làm bài tập 4", day: "23-10-2022", time: "23:30", status: 0));
-    // Data.insertTodo(ToDo(id: 5, title: "Làm bài tập 5", day: "24-10-2022", time: "20:00", status: 0));
-    // Data.insertTodo(ToDo(id: 6, title: "Làm bài tập 6", day: "25-10-2022", time: "10:00", status: 0));
     _getToDoList();// Loading the diary when the app starts
   }
 
@@ -76,6 +89,11 @@ class _MyHomePageState extends State<MyHomePage> {
 
   void _insertToDo(ToDo todo) async {
     await Data.insertTodo(todo);
+    _getToDoList();
+  }
+
+  void _deleteToDo(ToDo todo) async {
+    await Data.deleteToDo(todo);
     _getToDoList();
   }
 
@@ -107,6 +125,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 keyboardType: TextInputType.text,
                 autofocus: false,
                 controller: searchController,
+                focusNode: searchFocus,
                 decoration: InputDecoration(
                   hintText: '',
                   contentPadding: EdgeInsets.fromLTRB(20.0, 10.0, 20.0, 10.0),
@@ -116,7 +135,17 @@ class _MyHomePageState extends State<MyHomePage> {
                     searchController.clear();
                     searchFocus.unfocus();
                   });}, icon: Icon(Icons.clear)) :
-                  Icon(Icons.search),
+                  IconButton(
+                    onPressed: () {
+                      if (searchController.text.isNotEmpty){
+                        String description = searchController.text;
+                        Navigator.push(context, MaterialPageRoute(builder: (context) => SearchPage(search: description)));
+                        setState(() {
+                          searchController.clear();
+                          searchFocus.unfocus();});
+                      }
+                    }, icon: Icon(Icons.search)
+                  ),
                 ),
 
               ),
@@ -127,9 +156,9 @@ class _MyHomePageState extends State<MyHomePage> {
                     flex: 1,
                     child: TextButton(
                       onPressed: (){
-                        setState(() {
-                          selectType = type;
-                        });
+                        if(selectType != type){
+                          _changeTag(type);
+                        }
                       },
                       style: ButtonStyle(
                         shape: MaterialStateProperty.all<RoundedRectangleBorder>(
@@ -244,201 +273,41 @@ class _MyHomePageState extends State<MyHomePage> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => {
-          _insertToDo(ToDo(id: todoList.length + 1, title: "Làm bài tập ${todoList.length + 1}", day: formatterDate.format(new DateTime.now()), time: formatterTime.format(new DateTime.now()), status: 0))
+          _addToDo(context),
         },
         tooltip: 'Thêm',
         child: const Icon(Icons.add),
       ), // This trailing comma makes auto-formatting nicer for build methods.
     );
   }
-}
 
-//
-// // main.dart
-// import 'package:flutter/material.dart';
-//
-// import 'temp.dart';
-//
-// void main() {
-//   runApp(const MyApp());
-// }
-//
-// class MyApp extends StatelessWidget {
-//   const MyApp({Key? key}) : super(key: key);
-//
-//   @override
-//   Widget build(BuildContext context) {
-//     return MaterialApp(
-//       // Remove the debug banner
-//         debugShowCheckedModeBanner: false,
-//         title: 'Kindacode.com',
-//         theme: ThemeData(
-//           primarySwatch: Colors.orange,
-//         ),
-//         home: const HomePage());
-//   }
-// }
-//
-// class HomePage extends StatefulWidget {
-//   const HomePage({Key? key}) : super(key: key);
-//
-//   @override
-//   _HomePageState createState() => _HomePageState();
-// }
-//
-// class _HomePageState extends State<HomePage> {
-//   // All journals
-//   List<Map<String, dynamic>> _journals = [];
-//
-//   bool _isLoading = true;
-//   // This function is used to fetch all data from the database
-//   void _refreshJournals() async {
-//     final data = await SQLHelper.getItems();
-//     setState(() {
-//       _journals = data;
-//       _isLoading = false;
-//     });
-//   }
-//
-//   @override
-//   void initState() {
-//     super.initState();
-//     _refreshJournals(); // Loading the diary when the app starts
-//   }
-//
-//   final TextEditingController _titleController = TextEditingController();
-//   final TextEditingController _descriptionController = TextEditingController();
-//
-//   // This function will be triggered when the floating button is pressed
-//   // It will also be triggered when you want to update an item
-//   void _showForm(int? id) async {
-//     if (id != null) {
-//       // id == null -> create new item
-//       // id != null -> update an existing item
-//       final existingJournal =
-//       _journals.firstWhere((element) => element['id'] == id);
-//       _titleController.text = existingJournal['title'];
-//       _descriptionController.text = existingJournal['description'];
-//     }
-//
-//     showModalBottomSheet(
-//         context: context,
-//         elevation: 5,
-//         isScrollControlled: true,
-//         builder: (_) => Container(
-//           padding: EdgeInsets.only(
-//             top: 15,
-//             left: 15,
-//             right: 15,
-//             // this will prevent the soft keyboard from covering the text fields
-//             bottom: MediaQuery.of(context).viewInsets.bottom + 120,
-//           ),
-//           child: Column(
-//             mainAxisSize: MainAxisSize.min,
-//             crossAxisAlignment: CrossAxisAlignment.end,
-//             children: [
-//               TextField(
-//                 controller: _titleController,
-//                 decoration: const InputDecoration(hintText: 'Title'),
-//               ),
-//               const SizedBox(
-//                 height: 10,
-//               ),
-//               TextField(
-//                 controller: _descriptionController,
-//                 decoration: const InputDecoration(hintText: 'Description'),
-//               ),
-//               const SizedBox(
-//                 height: 20,
-//               ),
-//               ElevatedButton(
-//                 onPressed: () async {
-//                   // Save new journal
-//                   if (id == null) {
-//                     await _addItem();
-//                   }
-//
-//                   if (id != null) {
-//                     await _updateItem(id);
-//                   }
-//
-//                   // Clear the text fields
-//                   _titleController.text = '';
-//                   _descriptionController.text = '';
-//
-//                   // Close the bottom sheet
-//                   Navigator.of(context).pop();
-//                 },
-//                 child: Text(id == null ? 'Create New' : 'Update'),
-//               )
-//             ],
-//           ),
-//         ));
-//   }
-//
-// // Insert a new journal to the database
-//   Future<void> _addItem() async {
-//     await SQLHelper.createItem(
-//         _titleController.text, _descriptionController.text);
-//     _refreshJournals();
-//   }
-//
-//   // Update an existing journal
-//   Future<void> _updateItem(int id) async {
-//     await SQLHelper.updateItem(
-//         id, _titleController.text, _descriptionController.text);
-//     _refreshJournals();
-//   }
-//
-//   // Delete an item
-//   void _deleteItem(int id) async {
-//     await SQLHelper.deleteItem(id);
-//     ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-//       content: Text('Successfully deleted a journal!'),
-//     ));
-//     _refreshJournals();
-//   }
-//
-//   @override
-//   Widget build(BuildContext context) {
-//     return Scaffold(
-//       appBar: AppBar(
-//         title: const Text('Kindacode.com'),
-//       ),
-//       body: _isLoading
-//           ? const Center(
-//         child: CircularProgressIndicator(),
-//       )
-//           : ListView.builder(
-//         itemCount: _journals.length,
-//         itemBuilder: (context, index) => Card(
-//           color: Colors.orange[200],
-//           margin: const EdgeInsets.all(15),
-//           child: ListTile(
-//               title: Text(_journals[index]['title']),
-//               subtitle: Text(_journals[index]['description']),
-//               trailing: SizedBox(
-//                 width: 100,
-//                 child: Row(
-//                   children: [
-//                     IconButton(
-//                       icon: const Icon(Icons.edit),
-//                       onPressed: () => _showForm(_journals[index]['id']),
-//                     ),
-//                     IconButton(
-//                       icon: const Icon(Icons.delete),
-//                       onPressed: () =>
-//                           _deleteItem(_journals[index]['id']),
-//                     ),
-//                   ],
-//                 ),
-//               )),
-//         ),
-//       ),
-//       floatingActionButton: FloatingActionButton(
-//         child: const Icon(Icons.add),
-//         onPressed: () => _showForm(null),
-//       ),
-//     );
-//   }
-// }
+  _changeTag(String type){
+    setState(() {
+      selectType = type;
+      if (type == "Hôm nay") {
+        _getToDayTodoList();
+      }
+      else {
+        if (type == "Sắp tới") {
+          _getUpComingTodoList();
+        }
+        else {
+          _getToDoList();
+        }
+      }
+    });
+  }
+
+  Future<void> _addToDo(BuildContext context) async {
+    // Navigator.push returns a Future that completes after calling
+    // Navigator.pop on the Selection Screen.
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => AddToDoPage(id: todoList.length)),
+    );
+
+    if (result == true){
+      _changeTag(selectType);
+    }
+  }
+}
