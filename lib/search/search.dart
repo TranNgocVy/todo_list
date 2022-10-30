@@ -94,6 +94,7 @@ class _SearchPageState extends State<SearchPage> {
 
     return Scaffold(
       appBar: AppBar(
+        title: Text("Tìm công việc"),
         leading: BackButton(
           onPressed: (){
             Navigator.pop(context);

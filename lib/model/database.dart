@@ -19,10 +19,13 @@ class Data{
     );
   }
 
-  static Future<List<ToDo>> getToDoList() async {
+  static Future<List<ToDo>> getToDoList({String description = "", int status = 0}) async {
     final db = await Data.createData();
 
-    final List<Map<String, dynamic>> maps = await db.query('todo');
+    final List<Map<String, dynamic>> maps = await db.query(
+        'todo', where: 'title LIKE ? AND status = ?',
+        whereArgs: ['%' + description + '%', status]
+    );
 
     return List.generate(maps.length, (i) {
       return ToDo(
@@ -35,12 +38,13 @@ class Data{
     });
   }
 
-  static Future<List<ToDo>> getToDayToDoList() async {
+
+  static Future<List<ToDo>> getToDayToDoList(String description, int status) async {
     String today = formatterDate.format(DateTime.now());
 
     final db = await Data.createData();
 
-    final List<Map<String, dynamic>> maps = await db.query('todo',where: 'day LIKE ?', whereArgs: [today]);
+    final List<Map<String, dynamic>> maps = await db.query('todo',where: 'day LIKE ? AND title LIKE ? AND status = ?' , whereArgs: [today, "%" + description + "%", status]);
 
     return List.generate(maps.length, (i) {
       return ToDo(
@@ -53,7 +57,7 @@ class Data{
     });
   }
 
-  static Future<List<ToDo>> getUpComingToDoList() async {
+  static Future<List<ToDo>> getUpComingToDoList(String description, int status) async {
     final now = DateTime.now();
     final upcoming = now.add(const Duration(hours: 1));
 
@@ -67,8 +71,8 @@ class Data{
 
     final List<Map<String, dynamic>> maps = await db.query(
         'todo',
-        where: upcomingdate == nowdate ? 'day LIKE ? AND time >= ? AND time <= ?' : '(day LIKE ? AND time >= ?) OR (day LIKE ? AND time <= ?',
-        whereArgs: upcomingdate == nowdate ? [nowdate, nowtime, upcomingtime] : [nowdate, nowtime, upcomingdate, upcomingtime]
+        where: upcomingdate == nowdate ? 'day LIKE ? AND time >= ? AND time <= ? AND title LIKE ? AND status = ?' : '((day LIKE ? AND time >= ?) OR (day LIKE ? AND time <= ?)) AND title LIKE ? AND status = ?',
+        whereArgs: upcomingdate == nowdate ? [nowdate, nowtime, upcomingtime, "%" + description + "%", status] : [nowdate, nowtime, upcomingdate, upcomingtime, "%" + description + "%", status]
     );
 
     return List.generate(maps.length, (i) {
@@ -81,6 +85,21 @@ class Data{
       );
     });
   }
+
+  static Future<List<ToDo>> getToDoListWithSearch(String type, String search, int status) async {
+    if(type == "Hôm nay"){
+      return await Data.getToDayToDoList(search, status);
+    }
+    else{
+      if(type == "Sắp tới"){
+        return await Data.getUpComingToDoList(search, status);
+      }
+      else{
+        return await Data.getToDoList(description: search, status: status);
+      }
+    }
+  }
+
 
   static Future<List<ToDo>> getToDoListWithDescript(String description) async {
     final db = await Data.createData();

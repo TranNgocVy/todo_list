@@ -24,15 +24,15 @@ import 'package:todo_list/model/todo.dart';
 //   }
 // }
 
-class AddToDoPage extends StatefulWidget {
-  const AddToDoPage({super.key, required this.id});
-  final int id;
+class UpdateToDoPage extends StatefulWidget {
+  const UpdateToDoPage({super.key, required this.todo});
+  final ToDo todo;
 
   @override
-  State<AddToDoPage> createState() => _AddToDoPageState();
+  State<UpdateToDoPage> createState() => _UpdateToDoPageState();
 }
 
-class _AddToDoPageState extends State<AddToDoPage> {
+class _UpdateToDoPageState extends State<UpdateToDoPage> {
   final TextEditingController titleController = TextEditingController();
   final FocusNode titleFocus = FocusNode();
 
@@ -42,14 +42,17 @@ class _AddToDoPageState extends State<AddToDoPage> {
   final TextEditingController dateController = TextEditingController();
   final FocusNode dateFocus = FocusNode();
   DateTime selectedDate = DateTime.now();
+  // late DateTime selectedDate;
 
   final TextEditingController timeController = TextEditingController();
   final FocusNode timeFocus = FocusNode();
-  TimeOfDay selectedTime = TimeOfDay.now();
+  // TimeOfDay selectedTime = TimeOfDay.now();
+  late TimeOfDay selectedTime;
 
+  String description = "";
+  String date = "";
+  String time = "";
 
-  // String selectType = "Tất cả";
-  // bool ischeck = false;
 
   String error = "";
 
@@ -74,6 +77,12 @@ class _AddToDoPageState extends State<AddToDoPage> {
   void initState() {
     super.initState();
     _getToDoList(); // Loading the diary when the app starts
+    description = widget.todo.title;
+    date = widget.todo.day;
+    time = widget.todo.time;
+
+    selectedDate = DateTime.parse(date);
+    selectedTime = TimeOfDay(hour:int.parse(time.split(":")[0]),minute: int.parse(time.split(":")[1]));
   }
 
   void _updateToDo(ToDo todo) async {
@@ -108,11 +117,17 @@ class _AddToDoPageState extends State<AddToDoPage> {
               child: TextFormField(
                 keyboardType: TextInputType.text,
                 autofocus: false,
-                controller: descriptionController,
+                controller: descriptionController..text = description,
+                onChanged: (String text){
+                  description = text;
+
+                },
+                // initialValue: descriptionController,
                 minLines: 3,
+
                 maxLines: null,
                 decoration: InputDecoration(
-                  hintText: 'Nhập công việc cầm làm mới tại đây',
+                  hintText: 'Nhập công việc cầm làm tại đây',
                   hintStyle: TextStyle(
                       fontSize: 15
                   ),
@@ -133,7 +148,8 @@ class _AddToDoPageState extends State<AddToDoPage> {
                         keyboardType: TextInputType.text,
                         // initialValue: "2001-04-04",
                         focusNode: dateFocus,
-                        controller: dateController,
+                        controller: dateController..text = date,
+                        // initialValue: dateController,
                         autovalidateMode: AutovalidateMode.always,
                         decoration: InputDecoration(
                           hintText: "Ngày thực hiện",
@@ -158,7 +174,7 @@ class _AddToDoPageState extends State<AddToDoPage> {
                         onTap: () => _selectDate(context),
                       ),
                     ),
-                      flex: 1,
+                    flex: 1,
                   ),
                   Expanded(
                     flex: 1,
@@ -167,12 +183,14 @@ class _AddToDoPageState extends State<AddToDoPage> {
                       child: TextFormField(
                         keyboardType: TextInputType.text,
                         focusNode: timeFocus,
-                        controller: timeController,
+                        controller: timeController..text = time,
+                        // initialValue: timeController,
                         autovalidateMode: AutovalidateMode.always,
+
                         decoration: InputDecoration(
                           hintText: "Giờ thực hiện",
                           hintStyle: TextStyle(
-                            fontSize: 15
+                              fontSize: 15
                           ),
                           contentPadding: EdgeInsets.fromLTRB(10, 10.0, 10, 10.0),
                           border: OutlineInputBorder(
@@ -216,7 +234,7 @@ class _AddToDoPageState extends State<AddToDoPage> {
                   ElevatedButton(
                     onPressed: (){
                       if(check()){
-                        _insertToDo(ToDo(id: widget.id, title: descriptionController.text, day: dateController.text, time: timeController.text, status: 0));
+                        _updateToDo(ToDo(id: widget.todo.id, title: descriptionController.text, day: dateController.text, time: timeController.text, status: 0));
                         Navigator.pop(context, true);
                       }
                       else{
@@ -231,12 +249,12 @@ class _AddToDoPageState extends State<AddToDoPage> {
                         padding: MaterialStateProperty.all<EdgeInsets>(EdgeInsets.fromLTRB(30,10,30,10)),
                         shape: MaterialStateProperty.all<RoundedRectangleBorder>(
                             RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(10.0),
-                                // side: BorderSide(color: Colors.red)
+                              borderRadius: BorderRadius.circular(10.0),
+                              // side: BorderSide(color: Colors.red)
                             )
                         )
                     ),
-                    child: const Text("Lưu", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),),
+                    child: const Text("Lưu thay đổi", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),),
 
                   )
                 ],
@@ -261,7 +279,7 @@ class _AddToDoPageState extends State<AddToDoPage> {
     if (picked != null && picked != selectedDate) {
       selectedDate = picked;
       setState(() {
-        dateController.text = "${selectedDate.toLocal()}".split(' ')[0];
+        date = "${selectedDate.toLocal()}".split(' ')[0];
         dateFocus.requestFocus();
       });
     }
@@ -284,7 +302,7 @@ class _AddToDoPageState extends State<AddToDoPage> {
       setState(() {
         String hour = selectedTime.hour < 10 ? "0${selectedTime.hour}" : "${selectedTime.hour}";
         String minute = selectedTime.minute < 10 ? "0${selectedTime.minute}" : "${selectedTime.minute}";
-        timeController.text = hour + ":" + minute;
+        time = hour + ":" + minute;
         timeFocus.requestFocus();
       });
     }
@@ -318,7 +336,7 @@ class _AddToDoPageState extends State<AddToDoPage> {
 
     return true;
   }
-  // Text showError(){
-  //   return ;
-  // }
+// Text showError(){
+//   return ;
+// }
 }
