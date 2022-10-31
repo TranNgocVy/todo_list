@@ -10,6 +10,7 @@ import 'dart:async';
 import 'package:todo_list/model/todo.dart';
 import 'package:todo_list/search/search.dart';
 import 'package:todo_list/updateToDo.dart';
+import 'package:timezone/data/latest.dart' as tz;
 
 void main() {
   runApp(const MyApp());

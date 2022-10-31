@@ -6,6 +6,7 @@ import 'package:todo_list/model/database.dart';
 import 'dart:async';
 
 import 'package:todo_list/model/todo.dart';
+import 'package:todo_list/notification/notification.dart';
 
 // class AddToDo extends StatelessWidget {
 //   final int id;
@@ -87,12 +88,12 @@ class _UpdateToDoPageState extends State<UpdateToDoPage> {
 
   void _updateToDo(ToDo todo) async {
     await Data.updateToDo(todo);
-    _getToDoList();
+    // _getToDoList();
   }
 
-  void _insertToDo(ToDo todo) async {
-    await Data.insertTodo(todo);
-    _getToDoList();
+  void _deleteToDo(ToDo todo) async {
+    await Data.deleteToDo(todo);
+    // _getToDoList();
   }
 
 
@@ -106,6 +107,17 @@ class _UpdateToDoPageState extends State<UpdateToDoPage> {
             Navigator.pop(context, false);
           },
         ),
+        actions: [
+          IconButton(
+            onPressed: (){
+              _deleteToDo(widget.todo);
+              NotificationServer.deleteScheduleNotification(widget.todo);
+              Navigator.pop(context, true);
+
+            },
+            icon: Icon(Icons.remove_circle_outlined, color: Colors.red,),
+          )
+        ],
       ),
 
       body: Container(
@@ -234,7 +246,10 @@ class _UpdateToDoPageState extends State<UpdateToDoPage> {
                   ElevatedButton(
                     onPressed: (){
                       if(check()){
-                        _updateToDo(ToDo(id: widget.todo.id, title: descriptionController.text, day: dateController.text, time: timeController.text, status: 0));
+                        ToDo newToDo = ToDo(id: widget.todo.id, title: descriptionController.text, day: dateController.text, time: timeController.text, status: 0);
+                        _updateToDo(newToDo);
+                        NotificationServer.deleteScheduleNotification(widget.todo);
+                        NotificationServer.createScheduleNotification(newToDo);
                         Navigator.pop(context, true);
                       }
                       else{

@@ -6,23 +6,8 @@ import 'package:todo_list/model/database.dart';
 import 'dart:async';
 
 import 'package:todo_list/model/todo.dart';
-
-// class AddToDo extends StatelessWidget {
-//   final int id;
-//   const AddToDo({super.key,  required this.id} );
-//
-//   // This widget is the root of your application.
-//   @override
-//   Widget build(BuildContext context) {
-//     return MaterialApp(
-//       title: 'To do list',
-//       theme: ThemeData(
-//         primarySwatch: Colors.blue,
-//       ),
-//       home: AddToDoPage(id: id),
-//     );
-//   }
-// }
+import 'package:timezone/data/latest.dart' as tz;
+import 'package:todo_list/notification/notification.dart';
 
 class AddToDoPage extends StatefulWidget {
   const AddToDoPage({super.key, required this.id});
@@ -72,6 +57,7 @@ class _AddToDoPageState extends State<AddToDoPage> {
 
   @override
   void initState() {
+    tz.initializeTimeZones();
     super.initState();
     _getToDoList(); // Loading the diary when the app starts
   }
@@ -95,6 +81,7 @@ class _AddToDoPageState extends State<AddToDoPage> {
         leading: BackButton(
           onPressed: (){
             Navigator.pop(context, false);
+
           },
         ),
       ),
@@ -216,7 +203,9 @@ class _AddToDoPageState extends State<AddToDoPage> {
                   ElevatedButton(
                     onPressed: (){
                       if(check()){
-                        _insertToDo(ToDo(id: widget.id, title: descriptionController.text, day: dateController.text, time: timeController.text, status: 0));
+                        ToDo newToDo = new ToDo(id: widget.id, title: descriptionController.text, day: dateController.text, time: timeController.text, status: 0);
+                        _insertToDo(newToDo);
+                        NotificationServer.createScheduleNotification(newToDo);
                         Navigator.pop(context, true);
                       }
                       else{
