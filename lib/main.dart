@@ -12,6 +12,7 @@ import 'package:todo_list/search/search.dart';
 import 'package:todo_list/updateToDo.dart';
 import 'package:timezone/data/latest.dart' as tz;
 
+
 void main() {
   runApp(const MyApp());
 }
@@ -60,6 +61,7 @@ class _MyHomePageState extends State<MyHomePage> {
     final data = await Data.getToDoList();
     setState(() {
       todoList = data;
+
       _isLoading = false;
     });
   }
@@ -113,15 +115,20 @@ class _MyHomePageState extends State<MyHomePage> {
     _getToDoListWithSearch(selectType, searchController.text, _selectedIndex);
   }
 
-  void _insertToDo(ToDo todo) async {
-    await Data.insertTodo(todo);
-    _getToDoList();
-  }
+  // void _update1ToDo(ToDo todo) async {
+  //   await Data.updateToDo(todo);
+  //   // _getToDoList();
+  // }
 
-  void _deleteToDo(ToDo todo) async {
-    await Data.deleteToDo(todo);
-    _getToDoList();
-  }
+  // void _insertToDo(ToDo todo) async {
+  //   await Data.insertTodo(todo);
+  //   _getToDoList();
+  // }
+  //
+  // void _deleteToDo(ToDo todo) async {
+  //   await Data.deleteToDo(todo);
+  //   _getToDoList();
+  // }
 
 
 
@@ -269,19 +276,61 @@ class _MyHomePageState extends State<MyHomePage> {
                         children: <Widget>[
                           _selectedIndex == 0 ? Checkbox(
                             value: todo.status != 0,
-                            // value: ischeck,
                             onChanged: (bool? isSelect) => {
-                              // setState(() {
-                              //   ischeck = isSelect!;
-                              // })
-                              // setState(()  async {
-                              //   todo.status == 1;
-                              //   await Data.updateToDo(todo);
-                              //   _getToDoList();
-                              // }),
-                              // todo.status = 1;
                               if (isSelect == true){
-                                _finishToDo(ToDo(id: todo.id, title: todo.title, day: todo.day, time: todo.time, status: 1))
+                                showDialog<String>(
+                                  context: context,
+                                  builder: (BuildContext context) => AlertDialog(
+                                    elevation: 5,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(30),
+                                    ),
+                                    title: Container(
+                                      padding: EdgeInsets.only(bottom: 5),
+                                      decoration: BoxDecoration(
+                                        border: Border(
+                                          bottom: BorderSide(color: Colors.grey.shade200, width: 2)
+                                        )
+                                      ),
+                                      child: Text('Xác nhận'),
+                                    ),
+                                    content: Text('Bạn đã hoàn thành: ${todo.title}'),
+                                    actions: <Widget>[
+                                      TextButton(
+                                        style: ButtonStyle(
+                                            padding: MaterialStateProperty.all<EdgeInsets>(EdgeInsets.fromLTRB(30,10,30,10)),
+                                            shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                                                RoundedRectangleBorder(
+                                                  borderRadius: BorderRadius.circular(10.0),
+                                                  // side: BorderSide(color: Colors.red)
+                                                )
+                                            ),
+                                          backgroundColor:MaterialStateProperty.all(Colors.blue),
+                                        ),
+
+                                        onPressed: () => Navigator.pop(context),
+                                        child: const Text('Hủy', style: TextStyle(color: Colors.white),),
+                                      ),
+                                      TextButton(
+                                        style: ButtonStyle(
+                                            padding: MaterialStateProperty.all<EdgeInsets>(EdgeInsets.fromLTRB(30,10,30,10)),
+                                            shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                                                RoundedRectangleBorder(
+                                                  borderRadius: BorderRadius.circular(10.0),
+                                                  // side: BorderSide(color: Colors.red)
+                                                )
+                                            ),
+                                          backgroundColor:MaterialStateProperty.all(Colors.green),
+                                        ),
+                                        onPressed: () => {
+                                          _finishToDo(ToDo(id: todo.id, title: todo.title, day: todo.day, time: todo.time, status: 1)),
+                                          Navigator.pop(context),
+                                        },
+                                        child: const Text('Hoàn thành', style: TextStyle(color: Colors.white),),
+                                      ),
+                                    ],
+                                  ),
+                                ),
                               }
                               else
                                 {
@@ -358,10 +407,10 @@ class _MyHomePageState extends State<MyHomePage> {
             icon: Icon(Icons.book),
             label: 'Hoàn thành',
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.cancel_presentation_rounded),
-            label: 'Bỏ lỡ',
-          ),
+          // BottomNavigationBarItem(
+          //   icon: Icon(Icons.cancel_presentation_rounded),
+          //   label: 'Bỏ lỡ',
+          // ),
         ],
         currentIndex: _selectedIndex,
         selectedItemColor: Colors.amber[800],
@@ -383,6 +432,12 @@ class _MyHomePageState extends State<MyHomePage> {
       if(index != 0 && selectType == "Sắp tới"){
         selectType = "Tất cả";
       }
+      // else{
+      //   for(var i = 0; i < todoList.length; i++){
+      //     _update1ToDo(ToDo(id: todoList[i].id, title: todoList[i].title, day: todoList[i].day, time: todoList[i].time, status: 0));
+      //
+      //   }
+      // }
       _getToDoListWithSearch(selectType, searchController.text, index);
 
       // if(index == 1){
@@ -395,7 +450,7 @@ class _MyHomePageState extends State<MyHomePage> {
     // Navigator.pop on the Selection Screen.
     final result = await Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => AddToDoPage(id: todoList.length)),
+      MaterialPageRoute(builder: (context) => const AddToDoPage()),
     );
 
     if (result == true){

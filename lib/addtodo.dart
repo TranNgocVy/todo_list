@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:path/path.dart';
@@ -10,14 +12,13 @@ import 'package:timezone/data/latest.dart' as tz;
 import 'package:todo_list/notification/notification.dart';
 
 class AddToDoPage extends StatefulWidget {
-  const AddToDoPage({super.key, required this.id});
-  final int id;
+  const AddToDoPage({super.key});
 
   @override
   State<AddToDoPage> createState() => _AddToDoPageState();
 }
 
-class _AddToDoPageState extends State<AddToDoPage> {
+class _AddToDoPageState extends State<AddToDoPage> with TickerProviderStateMixin {
   final TextEditingController titleController = TextEditingController();
   final FocusNode titleFocus = FocusNode();
 
@@ -31,6 +32,9 @@ class _AddToDoPageState extends State<AddToDoPage> {
   final TextEditingController timeController = TextEditingController();
   final FocusNode timeFocus = FocusNode();
   TimeOfDay selectedTime = TimeOfDay.now();
+
+  late Animation _arrowAnimation;
+  late AnimationController _arrowAnimationController;
 
 
   // String selectType = "Tất cả";
@@ -60,11 +64,10 @@ class _AddToDoPageState extends State<AddToDoPage> {
     tz.initializeTimeZones();
     super.initState();
     _getToDoList(); // Loading the diary when the app starts
-  }
-
-  void _updateToDo(ToDo todo) async {
-    await Data.updateToDo(todo);
-    _getToDoList();
+    _arrowAnimationController =
+        AnimationController(vsync: this, duration: Duration(milliseconds: 300));
+    _arrowAnimation =
+        Tween(begin: 1.0, end: 0).animate(_arrowAnimationController);
   }
 
   void _insertToDo(ToDo todo) async {
@@ -96,6 +99,7 @@ class _AddToDoPageState extends State<AddToDoPage> {
                 keyboardType: TextInputType.text,
                 autofocus: false,
                 controller: descriptionController,
+                focusNode: descriptionFocus,
                 minLines: 3,
                 maxLines: null,
                 decoration: InputDecoration(
@@ -183,6 +187,7 @@ class _AddToDoPageState extends State<AddToDoPage> {
                 ],
               ),
             ),
+
             Container(
               padding: EdgeInsets.all(5),
               child: Text(
@@ -195,6 +200,7 @@ class _AddToDoPageState extends State<AddToDoPage> {
               ),
             ),
 
+
             Container(
 
               child: Row(
@@ -202,8 +208,11 @@ class _AddToDoPageState extends State<AddToDoPage> {
                 children: [
                   ElevatedButton(
                     onPressed: (){
-                      if(check()){
-                        ToDo newToDo = new ToDo(id: widget.id, title: descriptionController.text, day: dateController.text, time: timeController.text, status: 0);
+                      if(check(context)){
+                        ToDo newToDo = new ToDo(id: Data.id, title: descriptionController.text, day: dateController.text, time: timeController.text, status: 0);
+
+                        Data.id += 1;
+
                         _insertToDo(newToDo);
                         NotificationServer.createScheduleNotification(newToDo);
                         Navigator.pop(context, true);
@@ -288,7 +297,7 @@ class _AddToDoPageState extends State<AddToDoPage> {
     }
   }
 
-  bool check(){
+  bool check(BuildContext context){
     error = "";
     if (descriptionController.text.isEmpty){
       error = "Chưa nhập công việc cần làm";
@@ -305,9 +314,48 @@ class _AddToDoPageState extends State<AddToDoPage> {
       return false;
     }
 
+    if(DateTime.parse("${dateController.text} ${timeController.text}").isBefore(DateTime.now())){
+      showDialog<String>(
+        context: context,
+        builder: (BuildContext context) => AlertDialog(
+          elevation: 5,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(30),
+          ),
+          title: Container(
+            padding: EdgeInsets.only(bottom: 5),
+            decoration: BoxDecoration(
+                border: Border(
+                    bottom: BorderSide(color: Colors.grey.shade200, width: 2)
+                )
+            ),
+            child: Text('Thông báo'),
+          ),
+          content: Text('Thời gian bạn chọn để thực hiện công việc đã qua. Vui lòng chọn lại ngày/giờ khác'),
+          actions: <Widget>[
+            TextButton(
+              style: ButtonStyle(
+                padding: MaterialStateProperty.all<EdgeInsets>(EdgeInsets.fromLTRB(30,10,30,10)),
+                shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                    RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10.0),
+                      // side: BorderSide(color: Colors.red)
+                    )
+                ),
+                backgroundColor:MaterialStateProperty.all(Colors.blue),
+              ),
+
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Trở lại', style: TextStyle(color: Colors.white),),
+            ),
+          ],
+        ),
+      );
+      return false;
+    }
+
     return true;
   }
-  // Text showError(){
-  //   return ;
-  // }
+
+
 }

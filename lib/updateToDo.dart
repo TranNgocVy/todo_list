@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg_provider/flutter_svg_provider.dart';
 import 'package:intl/intl.dart';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
@@ -110,12 +111,68 @@ class _UpdateToDoPageState extends State<UpdateToDoPage> {
         actions: [
           IconButton(
             onPressed: (){
-              _deleteToDo(widget.todo);
-              NotificationServer.deleteScheduleNotification(widget.todo);
-              Navigator.pop(context, true);
+              showDialog<String>(
+                context: context,
+                builder: (BuildContext context) => AlertDialog(
+                  elevation: 5,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(30),
+                  ),
+                  title: Container(
+                    padding: EdgeInsets.only(bottom: 5),
+                    decoration: BoxDecoration(
+                        border: Border(
+                            bottom: BorderSide(color: Colors.grey.shade200, width: 2)
+                        )
+                    ),
+                    child: Text('Xác nhận'),
+                  ),
+                  content: Text('Bạn thực sự muốn xóa công việc \'${widget.todo.title}\' vào lúc ${widget.todo.time}'),
+                  actions: <Widget>[
+                    TextButton(
+                      style: ButtonStyle(
+                        padding: MaterialStateProperty.all<EdgeInsets>(EdgeInsets.fromLTRB(30,10,30,10)),
+                        shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                            RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10.0),
+                              // side: BorderSide(color: Colors.red)
+                            )
+                        ),
+                        backgroundColor:MaterialStateProperty.all(Colors.blue),
+                      ),
+
+                      onPressed: () => Navigator.pop(context),
+                      child: const Text('Trở lại', style: TextStyle(color: Colors.white),),
+                    ),
+                    TextButton(
+                      style: ButtonStyle(
+                        padding: MaterialStateProperty.all<EdgeInsets>(EdgeInsets.fromLTRB(30,10,30,10)),
+                        shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                            RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10.0),
+                              // side: BorderSide(color: Colors.red)
+                            )
+                        ),
+                        backgroundColor:MaterialStateProperty.all(Colors.red),
+                      ),
+                      onPressed: () => {
+                        _deleteToDo(widget.todo),
+                        NotificationServer.deleteScheduleNotification(widget.todo),
+                        Navigator.pop(context),
+                        Navigator.pop(context, true),
+                      },
+                      child: const Text('Xóa', style: TextStyle(color: Colors.white),),
+                    ),
+                  ],
+                ),
+              );
+
 
             },
-            icon: Icon(Icons.remove_circle_outlined, color: Colors.red,),
+            // icon: Icon(Icons.remove_circle_outlined, color: Colors.red,),
+            icon: Image(
+              image: Svg('assets/icons/icon_remove.svg'),
+            ),
           )
         ],
       ),
@@ -245,7 +302,7 @@ class _UpdateToDoPageState extends State<UpdateToDoPage> {
                 children: [
                   ElevatedButton(
                     onPressed: (){
-                      if(check()){
+                      if(check(context)){
                         ToDo newToDo = ToDo(id: widget.todo.id, title: descriptionController.text, day: dateController.text, time: timeController.text, status: 0);
                         _updateToDo(newToDo);
                         NotificationServer.deleteScheduleNotification(widget.todo);
@@ -332,7 +389,7 @@ class _UpdateToDoPageState extends State<UpdateToDoPage> {
     }
   }
 
-  bool check(){
+  bool check(BuildContext context){
     error = "";
     if (descriptionController.text.isEmpty){
       error = "Chưa nhập công việc cần làm";
@@ -346,6 +403,47 @@ class _UpdateToDoPageState extends State<UpdateToDoPage> {
 
     if(timeController.text.isEmpty){
       error = "Chưa chọn giờ thực hiện";
+      return false;
+    }
+
+    if(DateTime.parse("${dateController.text} ${timeController.text}").isBefore(DateTime.now())){
+      showDialog<String>(
+        context: context,
+        builder: (BuildContext context) => AlertDialog(
+          elevation: 5,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(30),
+          ),
+          title: Container(
+            padding: EdgeInsets.only(bottom: 5),
+            decoration: BoxDecoration(
+                border: Border(
+                    bottom: BorderSide(color: Colors.grey.shade200, width: 2)
+                )
+            ),
+            child: Text('Thông báo'),
+          ),
+          content: Text('Thời gian bạn chọn để thực hiện công việc đã qua. Vui lòng chọn lại ngày/giờ khác'),
+          actions: <Widget>[
+            TextButton(
+              style: ButtonStyle(
+                padding: MaterialStateProperty.all<EdgeInsets>(EdgeInsets.fromLTRB(30,10,30,10)),
+                shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                    RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10.0),
+                      // side: BorderSide(color: Colors.red)
+                    )
+                ),
+                backgroundColor:MaterialStateProperty.all(Colors.blue),
+              ),
+
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Trở lại', style: TextStyle(color: Colors.white),),
+            ),
+          ],
+        ),
+      );
+
       return false;
     }
 

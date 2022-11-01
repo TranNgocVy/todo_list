@@ -8,6 +8,7 @@ import 'package:flutter/widgets.dart';
 class Data{
   static var formatterDate = new DateFormat('yyyy-MM-dd');
   static var formatterTime = new DateFormat('HH:mm');
+  static int id = 0;
 
   static Future<void> insertTodo(ToDo todo) async {
     final db = await Data.createData();
@@ -24,7 +25,8 @@ class Data{
 
     final List<Map<String, dynamic>> maps = await db.query(
         'todo', where: 'title LIKE ? AND status = ?',
-        whereArgs: ['%' + description + '%', status]
+        whereArgs: ['%' + description + '%', status],
+        orderBy: 'day, time',
     );
 
     return List.generate(maps.length, (i) {
@@ -44,7 +46,13 @@ class Data{
 
     final db = await Data.createData();
 
-    final List<Map<String, dynamic>> maps = await db.query('todo',where: 'day LIKE ? AND title LIKE ? AND status = ?' , whereArgs: [today, "%" + description + "%", status]);
+    final List<Map<String, dynamic>> maps = await db.query(
+        'todo',
+        where: 'day LIKE ? AND title LIKE ? AND status = ?' ,
+        whereArgs: [today, "%" + description + "%", status],
+        orderBy: 'day, time',
+
+    );
 
     return List.generate(maps.length, (i) {
       return ToDo(
@@ -72,7 +80,9 @@ class Data{
     final List<Map<String, dynamic>> maps = await db.query(
         'todo',
         where: upcomingdate == nowdate ? 'day LIKE ? AND time >= ? AND time <= ? AND title LIKE ? AND status = ?' : '((day LIKE ? AND time >= ?) OR (day LIKE ? AND time <= ?)) AND title LIKE ? AND status = ?',
-        whereArgs: upcomingdate == nowdate ? [nowdate, nowtime, upcomingtime, "%" + description + "%", status] : [nowdate, nowtime, upcomingdate, upcomingtime, "%" + description + "%", status]
+        whereArgs: upcomingdate == nowdate ? [nowdate, nowtime, upcomingtime, "%" + description + "%", status] : [nowdate, nowtime, upcomingdate, upcomingtime, "%" + description + "%", status],
+        orderBy: 'day, time',
+
     );
 
     return List.generate(maps.length, (i) {

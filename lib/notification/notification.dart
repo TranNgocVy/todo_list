@@ -49,37 +49,4 @@ class NotificationServer{
   static Future deleteScheduleNotification(ToDo todo) async {
     await flutterLocalNotificationsPlugin.cancel(todo.id);
   }
-  //   DateTime date = DateTime.parse("${todo.day} ${todo.time}").subtract(Duration(hours: 1));
-  //   DateTime now = DateTime.now();
-  //
-  //   Duration diff = Duration(seconds: 1);
-  //   if(date.isAfter(now)){
-  //     diff = date.difference(now);
-  //   }
-  //
-  //   AndroidNotificationDetails androidPlatformChannelSpecifics =
-  //   new AndroidNotificationDetails(
-  //     'you_can_name_it_whatever1',
-  //     'channel_name',
-  //
-  //     playSound: true,
-  //     // sound: RawResourceAndroidNotificationSound('notification'),
-  //     importance: Importance.max,
-  //     priority: Priority.high,
-  //   );
-  //
-  //   var not= NotificationDetails(android: androidPlatformChannelSpecifics,
-  //       iOS: DarwinNotificationDetails()
-  //   );
-  //   await flutterLocalNotificationsPlugin.zonedSchedule(
-  //       todo.id,
-  //       todo.title,
-  //       "Vào lúc ${todo.time}",
-  //       tz.TZDateTime.now(tz.local).add(diff),
-  //       not,
-  //       uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime,
-  //       androidAllowWhileIdle: true);
-  // }
-
-
 }
