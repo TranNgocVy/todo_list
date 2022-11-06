@@ -115,20 +115,11 @@ class _MyHomePageState extends State<MyHomePage> {
     _getToDoListWithSearch(selectType, searchController.text, _selectedIndex);
   }
 
-  // void _update1ToDo(ToDo todo) async {
-  //   await Data.updateToDo(todo);
-  //   // _getToDoList();
-  // }
+  void _update1ToDo(ToDo todo) async {
+    await Data.updateToDo(todo);
+    // _getToDoList();
+  }
 
-  // void _insertToDo(ToDo todo) async {
-  //   await Data.insertTodo(todo);
-  //   _getToDoList();
-  // }
-  //
-  // void _deleteToDo(ToDo todo) async {
-  //   await Data.deleteToDo(todo);
-  //   _getToDoList();
-  // }
 
 
 
@@ -250,14 +241,6 @@ class _MyHomePageState extends State<MyHomePage> {
                   )).toList()
               ),
             ),
-            // Container(
-            //   padding: EdgeInsets.all(1),
-            //   decoration: BoxDecoration(
-            //     border: Border(
-            //       bottom: BorderSide(color: Colors.grey.shade300, width: 2)
-            //     )
-            //   ),
-            // ),
             SizedBox(height: 5,),
             Container(
               child: Column(
@@ -432,12 +415,7 @@ class _MyHomePageState extends State<MyHomePage> {
       if(index != 0 && selectType == "Sắp tới"){
         selectType = "Tất cả";
       }
-      // else{
-      //   for(var i = 0; i < todoList.length; i++){
-      //     _update1ToDo(ToDo(id: todoList[i].id, title: todoList[i].title, day: todoList[i].day, time: todoList[i].time, status: 0));
-      //
-      //   }
-      // }
+
       _getToDoListWithSearch(selectType, searchController.text, index);
 
       // if(index == 1){

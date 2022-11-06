@@ -7,15 +7,20 @@ class NotificationServer{
 
   static final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
   static Future initialize() async {
-    var androidInitialize = new AndroidInitializationSettings('mipmap/ic_launcher');
-    var iOSInitialize = new DarwinInitializationSettings();
+    // var androidInitialize = new AndroidInitializationSettings('mipmap/ic_launcher');
+    var androidInitialize = new AndroidInitializationSettings('@drawable-xhdpi/ic_stat_access_alarms');
+    var iOSInitialize = new DarwinInitializationSettings(
+        requestAlertPermission: true,
+      requestSoundPermission: true,
+      requestBadgePermission: true,
+    );
     var initializationsSettings = new InitializationSettings(android: androidInitialize,
         iOS: iOSInitialize);
     await flutterLocalNotificationsPlugin.initialize(initializationsSettings );
   }
 
   static Future createScheduleNotification(ToDo todo) async {
-    DateTime date = DateTime.parse("${todo.day} ${todo.time}").subtract(Duration(hours: 1));
+    DateTime date = DateTime.parse("${todo.day} ${todo.time}").subtract(Duration(minutes: 10));
     DateTime now = DateTime.now();
 
     Duration diff = Duration(seconds: 1);
@@ -29,13 +34,17 @@ class NotificationServer{
       'channel_name',
 
       playSound: true,
-      // sound: RawResourceAndroidNotificationSound('notification'),
+      sound: RawResourceAndroidNotificationSound('notification'),
       importance: Importance.max,
       priority: Priority.high,
+      icon: 'ic_stat_access_alarms'
     );
 
     var not= NotificationDetails(android: androidPlatformChannelSpecifics,
-        iOS: DarwinNotificationDetails()
+        iOS: DarwinNotificationDetails(
+          sound: 'notification',
+          presentSound: true,
+        )
     );
     await flutterLocalNotificationsPlugin.zonedSchedule(
         todo.id,
